@@ -35,7 +35,7 @@ function saveClick(){
   debugger
         //jwt
         let token=localStorage.getItem("currentUser");
-            alert(companyForm.companyAddress)
+            //alert(companyForm.companyAddress)
         axios.post("https://localhost:44363/api/Company/AddCompany",companyForm,
         {headers:{Authorization:`Bearer ${token}`}},
         ).then((d)=>{
@@ -58,7 +58,7 @@ function saveClick(){
   let token=localStorage.getItem("currentUser");
 axios.get('https://localhost:44363/api/Company/GetCompanyForSpecificUsers?username='+name,{headers:{Authorization:`Bearer ${token}`},}).then((d)=>{
   if(d.data){
-    console.log(d.data)
+    //console.log(d.data)
     setCompany(d.data)
 
     alert("Api call secessfull")
@@ -122,7 +122,6 @@ function renderCompany(){
 
 
 function employeeList(companyId){
-  
   console.log(companyId);
   navigate('/employeeList', { state: { companyId: companyId } });
 }
@@ -178,6 +177,7 @@ function deleteClick(companyId){
   })
  }
 
+
   return (
     <div>
         <h2 className='text-primary'>Company Page</h2>
@@ -185,9 +185,13 @@ function deleteClick(companyId){
             <div className='col-9'>
                 <h2 className='text-info'>Company List</h2>
             </div>
+            {userRole == "Admin"  ?(
             <div className='col-3'>
                 <button className='btn btn-info' data-toggle="modal" data-target="#newModal">New Company</button>
             </div>
+            ):null
+            }
+           
         </div>
 
         <table className='table table-bordered  table-active'>

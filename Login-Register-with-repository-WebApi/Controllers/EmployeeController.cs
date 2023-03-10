@@ -15,7 +15,7 @@ namespace Company_Project.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+   // [Authorize]
     public class EmployeeController : ControllerBase
     {
         private readonly IEmployeeRepository _employeeRepository;
@@ -115,6 +115,8 @@ namespace Company_Project.Controllers
 
         //This method will update the employees
         [HttpPut]
+        [Authorize(Roles = UserRoles.Role_Admin + "," + UserRoles.Role_Company + "," + UserRoles.Role_Employee)]
+
         public IActionResult UpdateEmployee(EmployeeDTO employeeDTO)
         {
             if (!(employeeDTO != null) && (ModelState.IsValid))
@@ -123,6 +125,7 @@ namespace Company_Project.Controllers
             }
 
             var employee = _mapper.Map<Employee>(employeeDTO);
+
             _employeeRepository.Update(employee);
             return Ok(new { message = "Employee Updated Sucessfully" });
         }

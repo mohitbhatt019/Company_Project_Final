@@ -7,12 +7,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
+using System.Globalization;
 
 namespace Company_Project.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
 
     public class LeaveController : ControllerBase
     {
@@ -28,6 +28,8 @@ namespace Company_Project.Controllers
         }
         [HttpPost]
         [Route("AddLeave")]
+        [Authorize(Roles = UserRoles.Role_Employee)]
+
         public async Task<IActionResult> AddLeave(LeaveDTO leaveDTO)
         {
             if((leaveDTO == null) && (!ModelState.IsValid))
@@ -54,6 +56,8 @@ namespace Company_Project.Controllers
 
         [HttpGet]
         [Route("AllLeaves")]
+        [Authorize(Roles = UserRoles.Role_Admin + "," + UserRoles.Role_Company + "," + UserRoles.Role_Employee)]
+
         public async Task<IActionResult> AllLeaves()
         {
             var leaveList=_leaveRepository.GetAll();
@@ -63,6 +67,8 @@ namespace Company_Project.Controllers
 
         [HttpPost]
         [Route("UpdateLeaveStatus/{employeeId}")]
+        [Authorize(Roles = UserRoles.Role_Admin + "," + UserRoles.Role_Company )]
+
         public async Task<IActionResult> UpdateLeaveStatus(int employeeId, LeaveStatus leaveStatus)
         {
             var leave = _leaveRepository.Get(employeeId);
@@ -76,12 +82,35 @@ namespace Company_Project.Controllers
 
         [HttpGet]
         [Route("SpecificEmployeeLeaves")]
+        [Authorize(Roles = UserRoles.Role_Admin + "," + UserRoles.Role_Company + "," + UserRoles.Role_Employee)]
+
         public async Task<IActionResult> SpecificEmployeeLeaves(int employeeId)
         {
+            List<Leave> data = new List<Leave>();
             var leaveList = _leaveRepository.FirstOrDefault(emp=>emp.EmployeeId==employeeId);
             if (leaveList == null) return NotFound(new { message = "No Employee Applied for leave" });
-            return Ok(new { leaveList });
+            data.Add(leaveList);
+            return Ok(data);
         }
 
+        [Route("SpecificCompanyLeave")]
+        [HttpPost]
+        public IActionResult SpecificCompanyLeave(int companyId)
+        {
+            if (companyId == 0) return BadRequest();
+
+            // Get the list of employees whose employee id is equal to companyId
+            var companyEmployees = _context.Employees.Where(e => e.CompanyId == companyId).ToList();
+
+            // Get the list of employees available in the leave table
+            var employeesOnLeave = _context.Leaves.Select(l => l.Employee).ToList();
+
+            // Return both lists as a JSON object
+            return Ok(new { CompanyEmployees = companyEmployees, EmployeesOnLeave = employeesOnLeave });
+        }
+
+
     }
+
+}
 }

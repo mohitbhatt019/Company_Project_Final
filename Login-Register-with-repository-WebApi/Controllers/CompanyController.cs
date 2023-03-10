@@ -331,11 +331,10 @@ namespace Company_Project.Controllers
             if (employee == null) return NotFound();
             _employeeDesignationRepository.Remove(employee);
             return Ok(new { status = 1, message = "Employee Removed from Designation" });
-
         }
 
         [HttpGet("GetCompanyForSpecificUsers")]
-        //[Authorize(Roles = UserRoles.Role_Admin + "," + UserRoles.Role_Company + "," + UserRoles.Role_Employee)]
+        [Authorize(Roles = UserRoles.Role_Admin + "," + UserRoles.Role_Company + "," + UserRoles.Role_Employee)]
 
         public async Task<IActionResult> GetCompanyForSpecificUsers(string username)
         {
@@ -386,30 +385,34 @@ namespace Company_Project.Controllers
         }
 
         [HttpGet("GetEmployeeForSpecificUsers")]
-        //[Authorize(Roles = UserRoles.Role_Employee)]
-
+        [Authorize(Roles = UserRoles.Role_Employee)]
         public async Task<IActionResult> GetEmployeeForSpecificUsers(string username)
         {
-            var user = _context.Users.ToList().Where(a => a.UserName == username).FirstOrDefault();
-            if (!string.IsNullOrEmpty(username))
+            if (string.IsNullOrEmpty(username))
             {
-                if (user.Id != null)
-                {
-                    var roles = await _userManager.GetRolesAsync(user);
-
-                    if (roles.Contains(UserRoles.Role_Employee))
-                    {
-                        var employee = _context.Employees.FirstOrDefault(e => e.ApplicationUserId == user.Id);
-                        if (employee == null) return NotFound();
-                        return Ok(employee);
-                    }
-                    return NotFound(new {message="User not in role of employee"});
-                }
-                return NotFound(new { message = "Id can't be null" });
-
+                return NotFound(new { message = "Username is required" });
             }
-            return NotFound(new { message = "Username is required" });
 
+            var user = _context.Users.FirstOrDefault(a => a.UserName == username);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            if (!roles.Contains(UserRoles.Role_Employee))
+            {
+                return NotFound(new { message = "User is not in role of employee" });
+            }
+
+            var employees = _context.Employees.Where(e => e.ApplicationUserId == user.Id).ToList();
+            if (employees.Count == 0)
+            {
+                return NotFound(new { message = "Employee not found" });
+            }
+
+            return Ok(employees);
         }
+
     }
 }

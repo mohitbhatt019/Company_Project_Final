@@ -48,7 +48,7 @@ function Login() {
         console.log("currentUser")
         
         alert("user Logged in");
-        navigate("/home")
+        navigate("/company")
 
       }else{
         alert("login failed")}

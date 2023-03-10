@@ -13,9 +13,10 @@ namespace Company_Project.Models.DTOs
         public int Employee_Account_Number { get; set; }
         public int Employee_PF_Number { get; set; }
         public int? CompanyId { get; set; }
+        public string? ApplicationUserId { get; set; }
         ///
         //public IEnumerable<SelectListItem>? CompanyList { get; set; }
-       // public IEnumerable<SelectListItem>? RoleList { get; set; }
+        // public IEnumerable<SelectListItem>? RoleList { get; set; }
 
         //**
         //[Required(ErrorMessage = "User Name is required")]

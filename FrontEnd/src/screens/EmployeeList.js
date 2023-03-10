@@ -5,9 +5,6 @@ import axios from 'axios';
 function EmployeeList() {
   const initData={
     employeeId:"",
-    username:"",
-    email:"",
-    password:"",
     role:"",
     employeeName:"",//
     employeeAddress:"",//
@@ -28,6 +25,7 @@ function EmployeeList() {
   const[assignDesignationForm,setassignDesignationForm]=useState({})
   const [selectedRole, setSelectedRole] = useState('');
   const roles = [ 'Company', 'Employee'];
+  let userRole=localStorage.getItem("userIsInRole")
 
   const[designatioEmployee,setDesignatioEmployee]=useState([]);
   const [date, setDate] = useState(new Date());
@@ -35,7 +33,7 @@ function EmployeeList() {
   const[leaveList,setleaveList]=useState([]);
   const[leaveForm,setleaveForm]=useState({});
 
-  const [specificLeaveList, setSpecificLeaveList] = useState([]);
+  // const [specificLeaveList, setSpecificLeaveList] = useState([]);
 
  
   const statusDropdown = document.getElementById("status");
@@ -87,7 +85,7 @@ function displayData(data) {
       .then((response) => {
         //debugger
         //console.log(response.data);
-        setEmployeeList(response.data);
+        setEmployeeList(response.data.empInDb);
       })
       .catch((error) => {
         console.error(error);
@@ -115,9 +113,10 @@ function displayData(data) {
   }
 
   function handleNewEmployeeClick() {
-    setEmployeeForm({ ...employeeForm, companyId: companyId });
-    document.getElementById('txtId').value = companyId;
-    document.getElementById('txtId').disabled = true;
+     setEmployeeForm(initData);
+
+     document.getElementById('txtId').value = companyId;
+     document.getElementById('txtId').disabled = true;
   }
 
   function saveDesignation(){
@@ -244,6 +243,7 @@ function leaveClick(){
   debugger
   leaveForm.leaveStatus=2
   console.log(leaveForm)
+
   let token=localStorage.getItem("currentUser")
   axios.post("https://localhost:44363/api/Leave/AddLeave",leaveForm,{headers:{Authorization: `Bearer ${token}`}}).then((d)=>{
     if(d.status==1){
@@ -299,24 +299,28 @@ function ApproveLeave(employeeId, status) {
     });
 }
 
-function specificleaveClick(employeeId){
-  debugger
-  let token = localStorage.getItem("currentUser");
-  axios.get(`https://localhost:44363/api/Leave/SpecificEmployeeLeaves?employeeId=${employeeId}`,{headers:{Authorization: `Bearer ${token}`}}).then((d)=>{
-    if(d.data.leaveList){
-      //console.log(d.data)
-      setSpecificLeaveList(d.data.leaveList);
-      alert("Api running")
-     // console.log(d.data.leaveList)
+function specificCompanyLeave(companyId){
+  alert("Working")
+ }
 
-    }
-    else{
-      alert("Api not running")
-    }
-  }).catch((e)=>{
-    alert(e)
-  })
-}
+// function specificleaveClick(employeeId){
+//   debugger
+//   let token = localStorage.getItem("currentUser");
+//   axios.get(`https://localhost:44363/api/Leave/SpecificEmployeeLeaves?employeeId=${employeeId}`,{headers:{Authorization: `Bearer ${token}`}}).then((d)=>{
+//     if(d.data.leaveList){
+//       //console.log(d.data)
+//       setSpecificLeaveList(d.data.leaveList);
+//       alert("Api running")
+//      // console.log(d.data.leaveList)
+
+//     }
+//     else{
+//       alert("Api not running")
+//     }
+//   }).catch((e)=>{
+//     alert(e)
+//   })
+// }
 
   return (
     <div>
@@ -340,6 +344,13 @@ function specificleaveClick(employeeId){
                 <button className=' bg-info m-2 p-2' data-toggle="modal" data-target="#newModal" onClick={handleNewEmployeeClick}>Add Employee</button>
             </div>
           
+        </div>
+        <div class="row">
+        {userRole=="Company" || userRole=="Admin" ?(
+              <div class="form-control">
+                <button className='form-control btn btn-info' onClick={specificCompanyLeave}>Company Leave Details</button>
+              </div>
+            ):null}
         </div>
       <table className="table table-bordered">
         <thead className="bg-info">
@@ -367,8 +378,8 @@ function specificleaveClick(employeeId){
               <td>
               <button onClick={()=>editClick(employee)} className='btn btn-info m-2' data-toggle='modal'data-target="#editModal">Edit</button>
               <button onClick={()=>deleteClick(employee.employeeId)} className='btn btn-danger m-2'>Delete</button>
-              <button className='btn btn-primary m-2' value={employeeForm.employeeId} data-target="#leaveModal" data-toggle="modal">Leave</button>
-              <button className='btn btn-secondary m-2' onClick={()=>setSpecificLeaveList(employee.employeeId)} value={employee.employeeId} data-target="#specificleaveModal" data-toggle="modal">Leave status</button>
+              {/* <button className='btn btn-primary m-2' value={employeeForm.employeeId} data-target="#leaveModal" data-toggle="modal">Leave</button>
+              <button className='btn btn-secondary m-2' onClick={()=>setSpecificLeaveList(employee.employeeId)} value={employee.employeeId} data-target="#specificleaveModal" data-toggle="modal">Leave status</button> */}
               
             </td> 
             </tr>
@@ -751,19 +762,19 @@ function specificleaveClick(employeeId){
         </form>
 
 
-        {/*Employee Leave Aply */}
+        {/* Employee Leave Aply
       <form>
           <div className='modal' id="leaveModal" role="dialog">
             <div className="modal-dialog">
               <div className='modal-content'>
-                {/* header */}
+                { header }
                 <div className='modal-dialog '>
                   <div className='modal-content'>
   
                   </div>
                   
                 </div>
-                {/* Body */}
+                // { Body }
                 <div className='modal-body'>
 
 
@@ -814,7 +825,7 @@ function specificleaveClick(employeeId){
           </div>
 
           
-                {/* Footer */}
+                //{ Footer }
                 <div className='modal-footer bg-info'>
                   <button id='saveButton'
                       onClick={leaveClick} 
@@ -828,7 +839,7 @@ function specificleaveClick(employeeId){
               </div>
             </div>
           </div>
-        </form>
+        </form> */}
 
         {/*Admin Leave List */}
       
@@ -907,7 +918,7 @@ function specificleaveClick(employeeId){
 
     {/* Specific Leave List */}
 
-    <div class="modal" tabindex="-1" id="specificleaveModal" role="dialog">
+    {/* <div class="modal" tabindex="-1" id="specificleaveModal" role="dialog">
   <div class="modal-dialog-sm" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -952,7 +963,7 @@ function specificleaveClick(employeeId){
       </div>
     </div>
   </div>
-</div>
+</div> */}
 
 
 
