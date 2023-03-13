@@ -6,8 +6,10 @@ using Company_Project.Repository.IRepository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Globalization;
+using System.Security.Claims;
 
 namespace Company_Project.Controllers
 {
@@ -65,13 +67,13 @@ namespace Company_Project.Controllers
             return Ok(leaveList);
         }
 
-        [HttpPost]
-        [Route("UpdateLeaveStatus/{employeeId}")]
-        [Authorize(Roles = UserRoles.Role_Admin + "," + UserRoles.Role_Company )]
-
-        public async Task<IActionResult> UpdateLeaveStatus(int employeeId, LeaveStatus leaveStatus)
+        [HttpPut]
+        [Route("UpdateLeaveStatus")]
+        //[Authorize(Roles = UserRoles.Role_Admin + "," + UserRoles.Role_Company )]
+        //FRom this method, Company And admin user can Approve or reject the leave request of employee
+        public async Task<IActionResult> UpdateLeaveStatus(int leaveId, LeaveStatus leaveStatus)
         {
-            var leave = _leaveRepository.Get(employeeId);
+            var leave = _leaveRepository.Get(leaveId);
             if (leave == null) return NotFound(new { message = "Leave not found" });
 
             leave.LeaveStatus = leaveStatus;
@@ -109,8 +111,24 @@ namespace Company_Project.Controllers
             return Ok(new { CompanyEmployees = companyEmployees, EmployeesOnLeave = employeesOnLeave });
         }
 
+        //In this api, Company User able to see All the Leaved that are applied in its Employee
+        //CompanyUserLeave list
+        [HttpGet]
+        [Route("GetLeavesByCompanyId")]
+        [Authorize(Roles = UserRoles.Role_Admin + "," + UserRoles.Role_Company)]
+
+        public IActionResult GetLeavesByCompanyId(int companyId)
+        {
+            var leaves =  _context.Leaves
+                .Where(l => l.Employee.CompanyId == companyId)
+                
+                .ToList();
+
+            return Ok(leaves);
+        }
+
 
     }
 
 }
-}
+

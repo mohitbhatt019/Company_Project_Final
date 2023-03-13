@@ -15,7 +15,7 @@ namespace Company_Project.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-   // [Authorize]
+    
     public class EmployeeController : ControllerBase
     {
         private readonly IEmployeeRepository _employeeRepository;
@@ -44,6 +44,8 @@ namespace Company_Project.Controllers
         //here i have add a check that if user is entering a random company id so first it will find in the database
         //that the companyId entered by user is exist or not
         [HttpPost]
+        [Authorize(Roles = UserRoles.Role_Admin + "," + UserRoles.Role_Company)]
+
         public async Task<IActionResult> AddEmployee(EmployeeDTO employeeDTO)
         {
             if(!(employeeDTO != null)&&(ModelState.IsValid))
@@ -101,11 +103,13 @@ namespace Company_Project.Controllers
                 companyInDb.ApplicationUserId = employee.ApplicationUserId;
                 _context.SaveChanges();
             }
-            return Ok(new { Message = "Register successfully!!!" }); 
+            return Ok(new { status=1,Message = "Register successfully!!!" }); 
         }
 
         //This method will give the list of employees
         [HttpGet]
+        [Authorize(Roles = UserRoles.Role_Admin + "," + UserRoles.Role_Company)]
+
         public IActionResult GetEmployees()
         {
             var employeeList = _employeeRepository.GetAll();
@@ -132,6 +136,8 @@ namespace Company_Project.Controllers
 
         //This method will delete the employee
         [HttpDelete]
+        [Authorize(Roles = UserRoles.Role_Admin + "," + UserRoles.Role_Company)]
+
         public IActionResult DeleteEmployees(int employeeId)
         {
             if (employeeId == 0) return NotFound();

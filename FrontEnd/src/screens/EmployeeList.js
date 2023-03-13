@@ -4,19 +4,21 @@ import axios from 'axios';
 
 function EmployeeList() {
   const initData={
-    employeeId:"",
+    username:"",
+    email:"",
+    password:"",
     role:"",
     employeeName:"",//
     employeeAddress:"",//
     employee_Pancard_Number:"",//
     employee_Account_Number:"",//
     employee_PF_Number:"",//
-    companyId:"",
-    leaveId:""
+    companyId:"",//
+    leaveStatus:""
   };
 
 
-
+ 
   const location = useLocation();
   const companyId = location.state?.companyId;
   const [employeeList, setEmployeeList] = useState([]);
@@ -32,6 +34,7 @@ function EmployeeList() {
 
   const[leaveList,setleaveList]=useState([]);
   const[leaveForm,setleaveForm]=useState({});
+  const[specificCompanyLeaveee,setspecificCompanyLeaveee]=useState([]);
 
   // const [specificLeaveList, setSpecificLeaveList] = useState([]);
 
@@ -92,10 +95,12 @@ function displayData(data) {
       });
   }
 
+
   function saveClick(){
     debugger
     let token=localStorage.getItem("currentUser");
     employeeForm.role=selectedRole
+    employeeForm.companyId=companyId
     //console.log(employeeForm)
     axios.post("https://localhost:44363/api/Employee",employeeForm,{headers:{Authorization:`Bearer ${token}`}}).then((d)=>{
       if(d){
@@ -113,7 +118,7 @@ function displayData(data) {
   }
 
   function handleNewEmployeeClick() {
-     setEmployeeForm(initData);
+    // setEmployeeForm(initData);
 
      document.getElementById('txtId').value = companyId;
      document.getElementById('txtId').disabled = true;
@@ -282,13 +287,15 @@ function leavesList(){
 // });
 
 
-
-function ApproveLeave(employeeId, status) {
+function ApproveLeave(leaveId, value) {
   debugger
   let token = localStorage.getItem("currentUser");
-  axios.post(`https://localhost:44363/api/Leave/UpdateLeaveStatus/${employeeId}?leaveStatus=${status}`,{headers:{Authorization:`Bearer ${token}`}}).then((response)=>{
+  
+  axios.put(`https://localhost:44363/api/Leave/UpdateLeaveStatus?leaveId=${leaveId}&leaveStatus=${value}`,{headers:{Authorization:`Bearer ${token}`}}).then((response)=>{
       if (response) {
         alert("Leave status changed successfully");
+        specificCompanyLeave(companyId)
+        leavesList()
       } else {
         alert("Leave status not changed");
       }
@@ -300,7 +307,21 @@ function ApproveLeave(employeeId, status) {
 }
 
 function specificCompanyLeave(companyId){
-  alert("Working")
+  debugger
+  let token=localStorage.getItem('currentUser')
+  axios.get("https://localhost:44363/api/Leave/GetLeavesByCompanyId?companyId="+companyId,{headers:{Authorization:`Bearer ${token}`},
+}).then((d)=>{
+    if(d){
+      //console.log(d.data)
+      setspecificCompanyLeaveee(d.data)
+      alert("api Run")
+
+    }
+    console.log(specificCompanyLeaveee)
+  }).catch((e)=>{
+    alert("Error in specifice CompanyLeave")
+
+  })
  }
 
 // function specificleaveClick(employeeId){
@@ -334,9 +355,11 @@ function specificCompanyLeave(companyId){
             <div className='col-2'>
                 <button className='bg-info m-2 p-2' data-toggle="modal"  data-target="#dsgListModal" onClick={designationsList} > Designation List</button>
             </div>
+            { userRole=="Admin" ?(
             <div className='col-2'>
                 <button className='bg-info m-2 p-2' data-toggle="modal"  data-target="#leaveListModal" onClick={leavesList} > Leave List</button>
             </div>
+            ):null}
             <div className='col-2'>
                 <h2 className='text-info'>Employee List</h2>
             </div>
@@ -348,7 +371,7 @@ function specificCompanyLeave(companyId){
         <div class="row">
         {userRole=="Company" || userRole=="Admin" ?(
               <div class="form-control">
-                <button className='form-control btn btn-info' onClick={specificCompanyLeave}>Company Leave Details</button>
+                <button className='form-control btn btn-info'onClick={()=>specificCompanyLeave(companyId)} data-toggle='modal'data-target="#specificCompanyLeave" >Company Leave Details</button>
               </div>
             ):null}
         </div>
@@ -405,7 +428,7 @@ function specificCompanyLeave(companyId){
 
                 <div className='form-group row'>
                     <label for="txtId" className='col-sm-4'>
-                     Company ID
+                    Employee Company ID
                     </label>
                     <div className='col-sm-8'>
                       <input type="text" id="txtId" name="employeeId" className="form-control"
@@ -714,9 +737,14 @@ function specificCompanyLeave(companyId){
                 employee Pancard Number
               </label>
               <div className='col-sm-8'>
-                <input type="text" id="txtsalary" name="employee_Pancard_Number" placeholder="Enter Pancard Number"
+              {userRole=="Company" || userRole=="Admin" ?(
+                <input type="text" disabled  id="txtsalary" name="employee_Pancard_Number" placeholder="Enter Pancard Number"
                 className="form-control" value={employeeForm.employee_Pancard_Number}
                 onChange={changeHandler} />
+              ):
+              <input type="text" disabled  id="txtsalary" name="employee_Pancard_Number" placeholder="Enter Pancard Number"
+                className="form-control" value={employeeForm.employee_Pancard_Number}
+                onChange={changeHandler} />}
               </div>
             </div>
 
@@ -858,6 +886,7 @@ function specificCompanyLeave(companyId){
   <thead>
     <tr>
       <th>Employee Id</th>
+      <th>Leave Id</th>
       <th>Start Date</th>
       <th>End Date</th>
       <th>Reason</th>
@@ -869,6 +898,7 @@ function specificCompanyLeave(companyId){
     {leaveList.map((employee, index) => (
       <tr key={index}>
         <td>{employee.employeeId}</td>
+        <td>{employee.leaveId}</td>
         <td>{employee.startDate}</td>
         <td>{employee.endDate}</td>
         <td>{employee.reason}</td>
@@ -885,20 +915,8 @@ function specificCompanyLeave(companyId){
       
         </td>
         <td>
-          <button
-            type="button"
-            onClick={(e) => {
-              const employeeId = employee.employeeId;
-              const status = document.getElementById(`status-${employee.employeeId}`).value;
-              console.log(`Employee Id: ${employeeId}, Status: ${status}`);
-              // Call your function to submit the form with the employeeId and status values
-              ApproveLeave(employeeId, status);
-            }}
-            class="btn btn-primary"
-            id={`leavestatus-${employee.employeeId}`}
-          >
-            Submit
-          </button>
+        <button className='btn btn-success m-1' onClick={() => ApproveLeave(employee.leaveId, 1)}>Approve</button>
+          <button className='btn btn-danger'onClick={() => ApproveLeave(employee.leaveId, 3)}>Reject</button>
         </td>
       </tr>
     ))}
@@ -965,6 +983,70 @@ function specificCompanyLeave(companyId){
   </div>
 </div> */}
 
+
+{/* Company Leave List */}
+ {/*Admin Leave List */}
+      
+ <div class="modal" tabindex="-1" id="specificCompanyLeave" role="dialog">
+  <div class="modal-dialog-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Designations in CompanyId={companyId}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+      <table class='table table-bodred table-hover'>
+  <thead>
+    <tr>
+      <th>Employee Id</th>
+      <th>Leave Id</th>
+      <th>Start Date</th>
+      <th>End Date</th>
+      <th>Reason</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {specificCompanyLeaveee.map((employee, index) => (
+      <tr key={index}>
+        <td>{employee.employeeId}</td>
+        <td>{employee.leaveId}</td>
+        <td>{employee.startDate}</td>
+        <td>{employee.endDate}</td>
+        <td>{employee.reason}</td>
+        <td>
+          {/* <select id={`status-${employee.employeeId}`} name={`status-${employee.employeeId}`}>
+            <option value="null">Select Status</option>
+            <option value="1">Approve</option>
+            <option value="2">Pending</option>
+            <option value="3">Cancelled</option>
+          </select> */}
+          {employee.leaveStatus === 1 && 'Approve'}
+    {employee.leaveStatus === 2 && 'Pending'}
+    {employee.leaveStatus === 3 && 'Cancelled'}
+      
+        </td>
+        <td>
+        <button className='btn btn-success m-1' onClick={() => ApproveLeave(employee.leaveId, 1)}>Approve</button>
+          <button className='btn btn-danger'onClick={() => ApproveLeave(employee.leaveId, 3)}>Reject</button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+
+        </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 
     </div>
