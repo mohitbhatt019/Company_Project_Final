@@ -224,7 +224,7 @@ namespace Company_Project.Controllers
             if (designationInDb != null)
             {
                 //If above condition is true then it will return
-                return Ok(new { status = 2, message = "Designation already in database" });
+                return Ok(new { status = 2, message = "Designation Added sucessfully(exist)" });
             }
 
 
@@ -411,7 +411,14 @@ namespace Company_Project.Controllers
                 return NotFound(new { message = "Employee not found" });
             }
 
-            return Ok(employees);
+            //Here i want EmployeeId and want to send it in frontend so finding EmployeeId
+            //var emp = _context.Employees.FirstOrDefault(a => a.ApplicationUserId == user.Id);
+            //if (employees == null)
+            //{
+            //    return NotFound(new { message = "Employee not found" });
+            //}
+            //var employeeId = emp.EmployeeId;
+            return Ok(new { employees  });
         }
 
     }

@@ -1,6 +1,6 @@
 import React, { useEffect,useState } from 'react'
 import { BrowserRouter, Route, Routes,Link,useNavigate } from 'react-router-dom';
-
+let userRole=localStorage.getItem("userIsInRole")
 function Header() {
   const navigate=useNavigate();
   const[user,setUser]=useState(null);
@@ -29,9 +29,11 @@ function Header() {
             {/* <li class="nav-item">
               <Link to="/about" class="nav-link " href="#">About US</Link>
             </li> */}
+             {userRole == "Admin"  ? (
             <li class="nav-item">
               <Link to="/employee" class="nav-link " href="#">Employee</Link>
             </li>
+             ):null}
             <li class="nav-item">
               <Link to="/company" class="nav-link " href="#">Company</Link>
             </li>

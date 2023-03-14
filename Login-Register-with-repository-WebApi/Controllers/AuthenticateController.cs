@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -50,6 +51,10 @@ namespace Company_Project.Controllers
                 return BadRequest();
             var userExists = await _authenticateRepository.IsUnique(registerModel.Username);
            if (userExists == null) return BadRequest(userExists);
+
+           //Here we checking that user email is registed with any company or not, if not then it show error
+            bool checkEmail = await _context.Users.AnyAsync(a => a.Email == registerModel.Email);
+            if (checkEmail) return BadRequest(new { message = "User alredy Exist in company" });
             var user = new ApplicationUser
             {
                 UserName = registerModel.Username,

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios';
-
+import DataTable from 'react-data-table-component';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -40,12 +40,14 @@ function saveClick(){
         {headers:{Authorization:`Bearer ${token}`}},
         ).then((d)=>{
          if(d.data){
-          getAll();
+          
           //companyForm(initData)
-           alert("Data saved")
+           alert("Company Added Sucessfully")
+           getAll();
+           setcompanyForm(initData)
          }
          else{
-           alert("Data not save")
+           alert("Company not saved")
          }
         }).catch((e)=>{
          alert("wrong with api")
@@ -61,7 +63,7 @@ axios.get('https://localhost:44363/api/Company/GetCompanyForSpecificUsers?userna
     //console.log(d.data)
     setCompany(d.data)
 
-    alert("Api call secessfull")
+    //alert("Api call secessfull")
   }
   else{
     alert("Api not called secessfully")
@@ -90,7 +92,7 @@ function getAll(){
 }
 
 function employeeRoleClick(companyId){
-  alert(companyId)
+ // alert(companyId)
   console.log(companyId);
   navigate('/EmployeeDetail', { state: { companyId: companyId } });
 }
@@ -137,8 +139,9 @@ function updateClick(){
   //alert(employeeForm.employeeName)
   axios.put("https://localhost:44363/api/Company/UpdateCompany",companyForm,{headers:{Authorization:`Bearer ${token}`}}).then((d)=>{
     if(d.data){ 
+      
       getAll()
-      alert("Api call sucessfull")
+      alert("Company Updated Sucessfully")
       console.log(d.data);
      setCompany(d.data);
    }
@@ -164,8 +167,8 @@ function deleteClick(companyId){
 }).then((d)=>{
   
     if(d){
-      alert(companyId)
-      alert("Data deleted successfully");
+      //alert(companyId)
+      alert("Company deleted successfully");
       getAll();
     }
     else{
@@ -177,13 +180,94 @@ function deleteClick(companyId){
   })
  }
 
+//DataTable
+const columns = [
+  {
+    name: <h5 className='text-success'>Company ID</h5>,
+    selector: "companyId",
+    sortable: true,
+    style: {
+      fontSize: "20px",
+      fontWeight: "bold",
+    },
+  },
+  {
+    name: <h5 className='text-success'>Company Name</h5>,
+    selector: "companyName",
+    sortable: true,
+    style: {
+      fontSize: "20px",
+      fontWeight: "bold",
+    },
+  },
+  {
+    //name: "Company Address", 
+    name: <h5 className='text-success'>Company Address</h5> ,
+    selector: "companyAddress",
+    sortable: true,
+    style: {
+      fontSize: "20px",
+      fontWeight: "bold",
+    },
+  },
+  {
+    name: <h5 className='text-success'>Company GST</h5>,
+    selector: "companyGST",
+    sortable: true,
+    style: {
+      fontSize: "20px",
+      fontWeight: "bold",
+    },
+  },
+  {
+    name: <h5 className='text-success'>Actions</h5>,
+    cell: (row) => (
+      <div className='col-12'>
+        {userRole === "Company" || userRole === "Admin" ? (
+          <button
+            onClick={() => editClick(row)}
+            className="bg-info m-1"
+            data-toggle="modal"
+            data-target="#editModal"
+            style={{ fontSize: "15px", padding: "10px 10px",fontWeight: "bold",
+          }}
+          >
+          Edit Compony
+          </button>
+        ) : null}
 
+        {userRole === "Admin" ? (
+          <button
+            onClick={() => deleteClick(row.companyId)}
+            className="bg-danger m-1"
+            style={{ fontSize: "15px", padding: "10px 10px",fontWeight: "bold",
+          }}
+          >
+            Delete
+          </button>
+        ) : null}
+
+        {userRole === "Company" || userRole === "Admin" ? (
+          <button onClick={() => employeeList(row.companyId)} className="bg-info m-1"  style={{ fontSize: "15px", padding: "10px 10px",fontWeight: "bold",
+        }}>
+            Emp List
+          </button>
+        ) : (
+          <button onClick={() => employeeRoleClick(row.companyId)} className="bg-info m-2" style={{fontSize:"20px", padding:"10px 10px",fontWeight:"bold"}}>
+            My Details
+          </button>
+        )}
+      </div>
+    ),
+  },
+];
+const data = company ? company.map((item) => ({ ...item })) : [];
   return (
     <div>
-        <h2 className='text-primary'>Company Page</h2>
+        <h2 className='text-success'>Company Page</h2>
         <div className='row'>
             <div className='col-9'>
-                <h2 className='text-info'>Company List</h2>
+                <h2 className='text-info'></h2>
             </div>
             {userRole == "Admin"  ?(
             <div className='col-3'>
@@ -194,18 +278,14 @@ function deleteClick(companyId){
            
         </div>
 
-        <table className='table table-bordered  table-active'>
-            <thead>
-                <tr>
-                    <th>Company ID</th>
-                    <th>Company Name</th>
-                    <th>Company Address</th>
-                    <th>Company GST</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>{renderCompany()}</tbody>
-        </table>
+        <  DataTable className='table table-responsive table-active'
+            columns={columns}
+            data={data}
+            pagination={true}
+            paginationPerPage={10}
+            paginationRowsPerPageOptions={[10, 20, 30]}
+            highlightOnHover={true}
+          />
 
          {/* Save */}
          <form>

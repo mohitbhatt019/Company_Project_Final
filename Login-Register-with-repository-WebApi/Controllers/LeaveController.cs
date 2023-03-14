@@ -34,26 +34,26 @@ namespace Company_Project.Controllers
 
         public async Task<IActionResult> AddLeave(LeaveDTO leaveDTO)
         {
-            if((leaveDTO == null) && (!ModelState.IsValid))
+            if ((leaveDTO == null) && (!ModelState.IsValid))
             {
                 return BadRequest(ModelState);
             }
-            var user = _context.Leaves.FirstOrDefault(a=>a.EmployeeId==leaveDTO.EmployeeId);
-            //if (user == null) return NotFound(new { message = "Unable to find Employee" });
-            var leaveInDb = _leaveRepository.GetAll();
-            foreach (var leaves in leaveInDb)
+
+            // Check if the user has already applied for a leave with leave status pending
+            var existingLeaveRequest = _context.Leaves.FirstOrDefault(a=>a.LeaveStatus == LeaveStatus.Pending);
+
+
+            if (existingLeaveRequest != null)
             {
-                var findEmployeeLeave = _context.Leaves.Where(a => a.EmployeeId == leaveDTO.EmployeeId).ToList();
-                if(findEmployeeLeave.Count==1) 
-                {
-                    return Ok(new { message = "Leave Already Applied" });
-                }
+                return Ok(new { message = "Leave request already exists with pending status" });
             }
+
+            // If the user has not applied for a leave with pending status, add the new leave request
             var leave = _mapper.Map<LeaveDTO, Leave>(leaveDTO);
             _leaveRepository.Add(leave);
-            var leav=_context.Leaves.FirstOrDefault(a=>a.EmployeeId==leaveDTO.EmployeeId);
-            var leaveIdInDb = leav.LeaveId;
-            return Ok( new { leaveIdInDb, status = 1,message="Leave Applied Sucessfully"});
+
+            var leaveIdInDb = leave.LeaveId;
+            return Ok(new { leaveIdInDb, status = 1, message = "Leave applied successfully" });
         }
 
         [HttpGet]
@@ -88,11 +88,9 @@ namespace Company_Project.Controllers
 
         public async Task<IActionResult> SpecificEmployeeLeaves(int employeeId)
         {
-            List<Leave> data = new List<Leave>();
-            var leaveList = _leaveRepository.FirstOrDefault(emp=>emp.EmployeeId==employeeId);
+            var leaveList = _leaveRepository.GetAll().Where(emp=>emp.EmployeeId==employeeId);
             if (leaveList == null) return NotFound(new { message = "No Employee Applied for leave" });
-            data.Add(leaveList);
-            return Ok(data);
+            return Ok(leaveList);
         }
 
         [Route("SpecificCompanyLeave")]

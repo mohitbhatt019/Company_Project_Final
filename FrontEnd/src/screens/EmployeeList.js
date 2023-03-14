@@ -18,6 +18,7 @@ function EmployeeList() {
   };
 
 
+
  
   const location = useLocation();
   const companyId = location.state?.companyId;
@@ -48,11 +49,6 @@ const leavechangeHandler=(event)=>{
 
   
 
-function displayData(data) {
-  for (let i = 0; i < data.leaveList.length; i++) {
-    console.log(data.leaveList[i]); // or any other display logic
-  }
-}
 
 
   useEffect(() => {
@@ -113,7 +109,8 @@ function displayData(data) {
         alert("Employee not saved")
       }
     }).catch((e)=>{
-      alert(e)
+      alert("Employee Already registered")
+
     })
   }
 
@@ -130,7 +127,10 @@ function displayData(data) {
   console.log(designationForm)
     axios.post("https://localhost:44363/api/Company/AddDesignation",designationForm,{headers:{Authorization:`Bearer ${token}`}}).then((d)=>{
       if(d.data.status==2){
+        
         alert(d.data.message)
+        getAll();
+
       }
       else{
         alert(d.data.message)
@@ -148,6 +148,7 @@ function displayData(data) {
     axios.post("https://localhost:44363/api/Company/AddEmployeeDesignation",assignDesignationForm,{headers:{Authorization:`Bearer ${token}`}}).then((d)=>{
       if(d){
         alert("Designation Assigned sucessfully")
+        setassignDesignationForm({})
       }
       else{
         alert("Designation not Assigned")
@@ -167,7 +168,7 @@ function designationsList(){
     if(d.data){
       //console.log(d.data)
       setDesignatioEmployee(d.data)
-      alert("api Run")
+      //alert("api Run")
 
     }
   }).catch((e)=>{
@@ -210,7 +211,7 @@ function updateClick(){
 console.log(employeeForm)
   axios.put("https://localhost:44363/api/Employee",employeeForm,{headers:{Authorization:`Bearer ${token}`}}).then((d)=>{
     if(d.data){
-      alert("Data updated")
+      alert("Employee Details updated sucessfully")
       getAll(companyId);
 
     }
@@ -231,9 +232,9 @@ function deleteClick(employeeId){
     }).then((d)=>{
       
         if(d){
-          alert(employeeId)
+
           alert("Data deleted successfully");
-          getAll();
+          getAll(companyId);
         }
         else{
           alert(d.data.message)
@@ -271,7 +272,7 @@ function leavesList(){
     if(response.data){
       setleaveList(response.data)
       console.log(leaveForm)
-      alert("Api running")
+      //alert("Api running")
 
     }
     else{
@@ -314,7 +315,7 @@ function specificCompanyLeave(companyId){
     if(d){
       //console.log(d.data)
       setspecificCompanyLeaveee(d.data)
-      alert("api Run")
+      //alert("api Run")
 
     }
     console.log(specificCompanyLeaveee)
@@ -324,24 +325,7 @@ function specificCompanyLeave(companyId){
   })
  }
 
-// function specificleaveClick(employeeId){
-//   debugger
-//   let token = localStorage.getItem("currentUser");
-//   axios.get(`https://localhost:44363/api/Leave/SpecificEmployeeLeaves?employeeId=${employeeId}`,{headers:{Authorization: `Bearer ${token}`}}).then((d)=>{
-//     if(d.data.leaveList){
-//       //console.log(d.data)
-//       setSpecificLeaveList(d.data.leaveList);
-//       alert("Api running")
-//      // console.log(d.data.leaveList)
 
-//     }
-//     else{
-//       alert("Api not running")
-//     }
-//   }).catch((e)=>{
-//     alert(e)
-//   })
-// }
 
   return (
     <div>
@@ -588,7 +572,7 @@ function specificCompanyLeave(companyId){
 
                   </div>
       <div class="modal-footer">
-        <button type="button" onClick={saveDesignation} class="btn btn-primary">Save</button>
+        <button type="button" onClick={saveDesignation} data-dismiss="modal" class="btn btn-primary">Save</button>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
     </div>
@@ -635,7 +619,7 @@ function specificCompanyLeave(companyId){
  
                   
       <div class="modal-footer">
-        <button type="button" onClick={saveAssignDesignation} class="btn btn-primary">Save</button>
+        <button type="button" onClick={saveAssignDesignation} class="btn btn-primary" data-dismiss="modal">Save</button>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
     </div>

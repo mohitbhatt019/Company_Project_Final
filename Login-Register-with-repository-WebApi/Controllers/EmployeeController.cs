@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.Design;
 
 namespace Company_Project.Controllers
@@ -54,6 +55,8 @@ namespace Company_Project.Controllers
             }
 
             //**
+            bool checkEmail = await _context.Users.AnyAsync(a => a.Email == employeeDTO.Email);
+            if (checkEmail) return BadRequest(new { message = "User alredy Exist in company" });
 
             // Check if a "Company" employee already exists for the company
             var companyEmployees = _context.Employees.Where(e => e.CompanyId == employeeDTO.CompanyId).ToList();

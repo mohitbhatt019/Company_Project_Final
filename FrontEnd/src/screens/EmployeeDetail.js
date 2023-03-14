@@ -58,7 +58,7 @@ function EmployeeDetail(){
             debugger
             //console.log(response.data);
             setEmployeeList(response.data);
-            console.log(response.data)
+           // console.log(response.data)
           })
           .catch((error) => {
             console.error(error);
@@ -80,7 +80,7 @@ function EmployeeDetail(){
       console.log(employeeForm)
         axios.put("https://localhost:44363/api/Employee",employeeForm,{headers:{Authorization:`Bearer ${token}`}}).then((d)=>{
           if(d.data){
-            alert("Data updated")
+            alert("Details updated sucessfully")
             getAll(name);
       
           }
@@ -95,12 +95,12 @@ function EmployeeDetail(){
         console.log(leaveForm)
         let token=localStorage.getItem("currentUser")
         axios.post("https://localhost:44363/api/Leave/AddLeave",leaveForm,{headers:{Authorization: `Bearer ${token}`}}).then((d)=>{
-          if(d.status==1){
+          if(d.data.status==1){
             setleaveForm(d.data.leaveIdInDb)
-           alert(d.message)
+           alert("Leave created sucessfully")
           }
           else{
-            alert("Leave already applied, first delete it then apply new leave")
+            alert(d.data.message)
           }
         }).catch((e)=>{
           alert(e)

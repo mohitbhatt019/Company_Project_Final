@@ -47,7 +47,7 @@ function Login() {
         localStorage.setItem("userIsInRole",d.data.role)
         console.log("currentUser")
         
-        alert("user Logged in");
+       // alert("user Logged in");
         navigate("/company")
 
       }else{
