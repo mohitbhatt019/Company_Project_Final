@@ -11,6 +11,7 @@ namespace Company_Project.Repository
             _context = context;
         }
 
+        // This method updates the EmployeeDesignation entity in the database with the EmployeeDesignation Leave object.
         public void Update(EmployeeDesignation employeeDesignation)
         {
             _context.Update(employeeDesignation);

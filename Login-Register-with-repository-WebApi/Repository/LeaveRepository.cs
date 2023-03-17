@@ -11,6 +11,7 @@ namespace Company_Project.Repository
             _context = context;
         }
 
+        // This method updates the Leave entity in the database with the provided Leave object.
         public void Update(Leave leave)
         {
             _context.Update(leave);

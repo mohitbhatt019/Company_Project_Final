@@ -11,6 +11,7 @@ namespace Company_Project.Repository
             _context = context;
         }
 
+        // This method updates the Designation entity in the database with the provided Designation object.
         public void Update(Designation designation)
         {
             _context.Designations.Update(designation);

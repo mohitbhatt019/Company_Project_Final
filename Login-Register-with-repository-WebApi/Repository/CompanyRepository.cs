@@ -12,6 +12,7 @@ namespace Company_Project.Repository
             _context = context;
         }
 
+        // This method updates the Company entity in the database with the provided Company object.
         public void Update(Company company)
         {
             _context.Companies.Update(company);

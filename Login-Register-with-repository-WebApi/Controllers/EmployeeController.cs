@@ -49,12 +49,13 @@ namespace Company_Project.Controllers
 
         public async Task<IActionResult> AddEmployee(EmployeeDTO employeeDTO)
         {
-            if(!(employeeDTO != null)&&(ModelState.IsValid))
+            // Check if the employeeDTO object is not null and ModelState is valid
+            if (!(employeeDTO != null)&&(ModelState.IsValid))
             {
                 return BadRequest(ModelState);
             }
 
-            //**
+            // Check if the email already exists in the database
             bool checkEmail = await _context.Users.AnyAsync(a => a.Email == employeeDTO.Email);
             if (checkEmail) return BadRequest(new { message = "User alredy Exist in company" });
 
@@ -69,15 +70,20 @@ namespace Company_Project.Controllers
                 }
             }
 
-            //**
+            // Map the employeeDTO object to Employee object
             var employee = _mapper.Map<Employee>(employeeDTO);
-            
+
+            // Check if the username is unique
             var userExists = await _authenticateRepository.IsUnique(employeeDTO.Username);
             if (userExists == null) return BadRequest(userExists);
-            if(employeeDTO.Role=="")
+
+            // If the employee's role is not set, set it to "Employee"
+            if (employeeDTO.Role=="")
             {
                 employeeDTO.Role = UserRoles.Role_Employee;
             }
+
+            // Create a new ApplicationUser object with employee details
             var user = new ApplicationUser
             {
                 UserName = employeeDTO.Username,
@@ -86,15 +92,13 @@ namespace Company_Project.Controllers
                 Role = employeeDTO.Role,
             };
 
-
-          
-
+            // Register the new user
             var result = await _authenticateRepository.RegisterUser(user);
             employee.ApplicationUserId = user.Id;
             _employeeRepository.Add(employee);
             if (!result) return StatusCode(StatusCodes.Status500InternalServerError);
 
-            //Here i am checking if any Company User exist
+            // Check if any Company User exists and save ApplicationUserId of CompanyUser in Company Table
 
             //Here i am saving ApplicationUserId of CompanyUser in Company Table
 
@@ -126,6 +130,7 @@ namespace Company_Project.Controllers
 
         public IActionResult UpdateEmployee(EmployeeDTO employeeDTO)
         {
+            // Check if the employeeDTO object is not null and ModelState is valid
             if (!(employeeDTO != null) && (ModelState.IsValid))
             {
                 return BadRequest(ModelState);
@@ -140,44 +145,59 @@ namespace Company_Project.Controllers
         //This method will delete the employee
         [HttpDelete]
         [Authorize(Roles = UserRoles.Role_Admin + "," + UserRoles.Role_Company)]
-
         public IActionResult DeleteEmployees(int employeeId)
         {
+            // Check if employeeId is 0, return NotFound if true
             if (employeeId == 0) return NotFound();
+
+            // Get the employee with the provided ID
             var employee = _employeeRepository.Get(employeeId);
 
+            // Find all employee designations associated with the employee and remove them
             var empInDsg = _context.employeeDesignations.Where(a => a.EmployeeId == employeeId).ToList();
             if (empInDsg.Count !=0) { _context.employeeDesignations.RemoveRange(empInDsg); }
 
-                _employeeRepository.Remove(employeeId);
-                var user = _userManager.FindByIdAsync(employee.ApplicationUserId).Result;
+            // Remove the employee from the employee repository
+            _employeeRepository.Remove(employeeId);
+
+            // Find the user associated with the employee
+            var user = _userManager.FindByIdAsync(employee.ApplicationUserId).Result;
 
             // Delete the user's identity records
+            // Find all logins associated with the user and remove them
             var logins = _userManager.GetLoginsAsync(user).Result;
             foreach (var login in logins)
             {
                 var result = _userManager.RemoveLoginAsync(user, login.LoginProvider, login.ProviderKey).Result;
                 if (!result.Succeeded)
                 {
+                    // If removing login fails, return BadRequest with the error messages
                     return BadRequest(result.Errors);
                 }
             }
+
+            // Find all roles associated with the user and remove them
             var roles = _userManager.GetRolesAsync(user).Result;
             foreach (var role in roles)
             {
                 var result = _userManager.RemoveFromRoleAsync(user, role).Result;
                 if (!result.Succeeded)
                 {
+                    // If removing role fails, return BadRequest with the error messages
                     return BadRequest(result.Errors);
                 }
             }
+
+            // This line deletes the user using the _userManager and blocks until the operation is completed.
             var result2 = _userManager.DeleteAsync(user).Result;
+
+            // Check if the operation succeeded. If it failed, return a BadRequest response with the error messages.
             if (!result2.Succeeded)
             {
                 return BadRequest(result2.Errors);
             }
 
-
+            // If the operation succeeded, return an Ok response with a message indicating successful deletion and a status code of 1.
             return Ok(new { message = "Employee Deleted Sucessfully", status = 1 });
 
         }

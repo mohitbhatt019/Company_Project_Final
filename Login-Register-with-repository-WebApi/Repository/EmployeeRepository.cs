@@ -11,6 +11,7 @@ namespace Company_Project.Repository
             _context = context;
         }
 
+        // This method updates the Employee entity in the database with the provided Employee object.
         public void Update(Employee employee)
         {
             _context.Update(employee);
