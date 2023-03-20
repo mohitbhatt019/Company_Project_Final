@@ -40,13 +40,14 @@ ConfigurationManager configuration = builder.Configuration;
 
 // Add services to the container.
 builder.Services.AddScoped<IAuthenticateRepository, AuthenticateRepository>();
-builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IDesignationRepository, DesignationRepository>();
 builder.Services.AddScoped<IEmployeeDesignationRepository, EmployeeDesignationRepository>(); 
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 builder.Services.AddScoped<ILeaveRepository, LeaveRepository>();
+builder.Services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
+
 
 
 //****
@@ -69,21 +70,43 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-    // JWT Bearer add
-    .AddJwtBearer(options =>
+});
+
+    //JWT AUThentication
+///JWT Authentication
+var appsettingSection = builder.Configuration.GetSection("JWTSetting");
+builder.Services.Configure<JWTSetting>(appsettingSection);
+var appsetting = appsettingSection.Get<JWTSetting>();
+var key = Encoding.ASCII.GetBytes(appsetting.SecretKey);
+builder.Services.AddAuthentication(x =>
+{
+    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(x =>
+{
+    x.RequireHttpsMetadata = true;
+    x.SaveToken = true;
+    x.TokenValidationParameters = new TokenValidationParameters()
     {
-        options.SaveToken = true;
-        options.RequireHttpsMetadata = false;
-        options.TokenValidationParameters = new TokenValidationParameters()
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ClockSkew = TimeSpan.Zero
+    };
+    x.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidAudience = builder.Configuration["JWT:ValidAudience"],
-            ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]))
-        };
-    });
+            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+            {
+                context.Response.Headers.Add("IS-TOKEN-EXPIRED", "true");
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
+    
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

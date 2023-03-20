@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
 import { useNavigate } from 'react-router-dom';
+import Interceptor from './Interceptor';
 
 
 
@@ -34,10 +35,9 @@ let userRole=localStorage.getItem("userIsInRole")
 function saveClick(){
   debugger
         //jwt
-        let token=localStorage.getItem("currentUser");
             //alert(companyForm.companyAddress)
-        axios.post("https://localhost:44363/api/Company/AddCompany",companyForm,
-        {headers:{Authorization:`Bearer ${token}`}},
+            Interceptor.post("https://localhost:44363/api/Company/AddCompany",companyForm,
+       
         ).then((d)=>{
          if(d.data){
           
@@ -57,8 +57,8 @@ function saveClick(){
 
  function specificComp(name){
   debugger
-  let token=localStorage.getItem("currentUser");
-axios.get('https://localhost:44363/api/Company/GetCompanyForSpecificUsers?username='+name,{headers:{Authorization:`Bearer ${token}`},}).then((d)=>{
+  //let token=localStorage.getItem("currentUser");
+  Interceptor.get('https://localhost:44363/api/Company/GetCompanyForSpecificUsers?username='+name/*,{headers:{Authorization:`Bearer ${token}`},}*/).then((d)=>{
   if(d.data){
     //console.log(d.data)
     setCompany(d.data)
@@ -76,8 +76,7 @@ axios.get('https://localhost:44363/api/Company/GetCompanyForSpecificUsers?userna
 
 function getAll(){
   debugger
-  let token=localStorage.getItem("currentUser");
-  axios.get("https://localhost:44363/api/Company/GetCompany",{headers:{Authorization:`Bearer ${token}`},}).then((d)=>{
+  Interceptor.get("https://localhost:44363/api/Company/GetCompany").then((d)=>{
     if(d.data){
       console.log(d.data)
       setCompany(d.data)
@@ -134,16 +133,16 @@ setcompanyForm(data);
 }
 
 function updateClick(){
-  // debugger
-  let token=localStorage.getItem("currentUser");
+   debugger
+ 
   //alert(employeeForm.employeeName)
-  axios.put("https://localhost:44363/api/Company/UpdateCompany",companyForm,{headers:{Authorization:`Bearer ${token}`}}).then((d)=>{
+  Interceptor.put("https://localhost:44363/api/Company/UpdateCompany",companyForm).then((d)=>{
     if(d.data){ 
-      
-      getAll()
+      console.log(d.data)
+      //setCompany(d.data);
       alert("Company Updated Sucessfully")
-      console.log(d.data);
-     setCompany(d.data);
+     getAll(); 
+
    }
    else{
      alert("Issue in api")
@@ -158,13 +157,12 @@ function updateClick(){
 
 function deleteClick(companyId){
   debugger
-  var token=localStorage.getItem("currentUser")
+  
   //alert(id)
   let ans=window.confirm('Want to delete data???')
   if(!ans) return;
   
-  axios.delete("https://localhost:44363/api/Company/DeleteCompany?companyId="+companyId,{headers:{Authorization:`Bearer ${token}`},
-}).then((d)=>{
+  Interceptor.delete("https://localhost:44363/api/Company/DeleteCompany?companyId="+companyId).then((d)=>{
   
     if(d){
       //alert(companyId)

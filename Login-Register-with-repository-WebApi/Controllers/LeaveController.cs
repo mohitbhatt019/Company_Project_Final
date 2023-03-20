@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Globalization;
+using System.Linq;
 using System.Security.Claims;
 
 namespace Company_Project.Controllers
@@ -43,13 +44,16 @@ namespace Company_Project.Controllers
             }
 
             // Check if the user has already applied for a leave with leave status pending
-            var existingLeaveRequest = _context.Leaves.FirstOrDefault(a=>a.LeaveStatus == LeaveStatus.Pending);
-
-            // If the user has already applied for a leave with pending status, return an Ok response with a message indicating that the request already exists
-            if (existingLeaveRequest != null)
+            var existingLeaveRequest = _context.Leaves.Where(a => a.EmployeeId == leaveDTO.EmployeeId).ToList();
+            foreach (var emp in existingLeaveRequest)
             {
-                return Ok(new { message = "Leave request already exists with pending status" });
+                if (emp.LeaveStatus==LeaveStatus.Pending)
+                {
+                    return Ok(new { message = "Leave request already exists with pending status" });
+                }
             }
+            // If the user has already applied for a leave with pending status, return an Ok response with a message indicating that the request already exists
+           
 
             // If the user has not applied for a leave with pending status, add the new leave request
             var leave = _mapper.Map<LeaveDTO, Leave>(leaveDTO);

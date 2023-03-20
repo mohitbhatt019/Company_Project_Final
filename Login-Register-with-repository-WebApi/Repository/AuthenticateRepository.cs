@@ -9,31 +9,67 @@ namespace Company_Project.Repository
     public class AuthenticateRepository : IAuthenticateRepository
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly JWTSetting _jwtSetting;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IRefreshTokenGenerator _tokenGenrator;
 
 
-        public AuthenticateRepository(UserManager<ApplicationUser> userManager)
+        public AuthenticateRepository(UserManager<ApplicationUser> userManager, IOptions<JWTSetting> jwtSetting, SignInManager<ApplicationUser> signInManager, IRefreshTokenGenerator tokenGenrator)
         {
-            _userManager= userManager;
+            _userManager = userManager;
+            _jwtSetting = jwtSetting.Value;
+            _tokenGenrator = tokenGenrator;
+            _signInManager = signInManager;
 
+        }
+
+        public async Task<ApplicationUser?> AddOrUpdateUserRefreshToken(ApplicationUser user)
+        {
+
+            user.RefreshTokenValidDate = DateTime.Now.AddMinutes(_jwtSetting.RefreshTokenExpireDays);
+            var userD = await _userManager.UpdateAsync(user);
+            return userD.Succeeded ? user : null;
         }
 
         // Method to authenticate a user with their username and password
         public async Task<ApplicationUser> AuthenticateUser(string userName, string userPassword)
         {
             // Find the user with the given username
-            var user = await _userManager.FindByNameAsync(userName);
+            var userExist = await _userManager.FindByNameAsync(userName);
 
             // Verify the user's password
-            bool VERIFY = await _userManager.CheckPasswordAsync(user, userPassword);
+            var VERIFY = await _signInManager.CheckPasswordSignInAsync(userExist, userPassword, false);
 
             // If the password is correct, return the user
-            if (VERIFY == true)
-                //admin
-             //await _userManager.AddToRoleAsync(user, UserRoles.Role_Admin);
-            return user;
-            return null;
+            if (!VERIFY.Succeeded) return null;
 
-         }
+            // Retrieve the user's roles
+            var roles = await _userManager.GetRolesAsync(userExist);
+
+            // Set the user's role string to the first role in the roles list
+            //var userRoles = await _userManager.GetRolesAsync(userExist);
+            //var userRoleString = userRoles.Count > 0 ? userRoles[0] : "";
+
+
+            var roleUser = await _userManager.GetRolesAsync(userExist);
+            userExist.Role = roleUser.FirstOrDefault();
+            if (userExist.RefreshTokenValidDate < DateTime.Now)
+            {
+                var userToken = _tokenGenrator.GenerateToken(userExist, true);
+                return await AddOrUpdateUserRefreshToken(userToken);
+            }
+            return _tokenGenrator.GenerateToken(userExist, false);
+
+        }
+
+        public async Task<ApplicationUser?> CheckUserInDb(string userName)
+        {
+            var UserInDb = await _userManager.FindByIdAsync(userName);
+            if (UserInDb == null) return null;
+            var userGetRole = await _userManager.GetRolesAsync(UserInDb);
+            UserInDb.Role = userGetRole?.FirstOrDefault();
+            return UserInDb;
+        }
 
         // Method to check if a username is unique
         public async Task<bool> IsUnique(string userName)

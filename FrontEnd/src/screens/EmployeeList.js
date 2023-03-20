@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
+import Interceptor from './Interceptor';
 
 function EmployeeList() {
   const initData={
@@ -75,12 +76,8 @@ const leavechangeHandler=(event)=>{
 
 
   function getAll(companyId) {
-    const token = localStorage.getItem('currentUser');
-    //console.log(employeeList)
-    axios
-      .get(`https://localhost:44363/api/Company/EmployeesInTheCompany?companyId=${companyId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+    Interceptor
+      .get(`https://localhost:44363/api/Company/EmployeesInTheCompany?companyId=${companyId}`)
       .then((response) => {
         //debugger
         //console.log(response.data);
@@ -94,11 +91,11 @@ const leavechangeHandler=(event)=>{
 
   function saveClick(){
     debugger
-    let token=localStorage.getItem("currentUser");
+    //let token=localStorage.getItem("currentUser");
     employeeForm.role=selectedRole
     employeeForm.companyId=companyId
     //console.log(employeeForm)
-    axios.post("https://localhost:44363/api/Employee",employeeForm,{headers:{Authorization:`Bearer ${token}`}}).then((d)=>{
+    Interceptor.post("https://localhost:44363/api/Employee",employeeForm).then((d)=>{
       if(d){
          setEmployeeForm({ companyId: companyId }); // Clear form fields except companyId
         getAll(companyId)
@@ -123,9 +120,9 @@ const leavechangeHandler=(event)=>{
 
   function saveDesignation(){
     debugger
-    let token=localStorage.getItem("currentUser")
+    //let token=localStorage.getItem("currentUser")
   console.log(designationForm)
-    axios.post("https://localhost:44363/api/Company/AddDesignation",designationForm,{headers:{Authorization:`Bearer ${token}`}}).then((d)=>{
+  Interceptor.post("https://localhost:44363/api/Company/AddDesignation",designationForm).then((d)=>{
       if(d.data.status==2){
         
         alert(d.data.message)
@@ -143,9 +140,9 @@ const leavechangeHandler=(event)=>{
 
   function saveAssignDesignation(){
     debugger
-    let token=localStorage.getItem("currentUser")
+    //let token=localStorage.getItem("currentUser")
     console.log(assignDesignationForm)
-    axios.post("https://localhost:44363/api/Company/AddEmployeeDesignation",assignDesignationForm,{headers:{Authorization:`Bearer ${token}`}}).then((d)=>{
+    Interceptor.post("https://localhost:44363/api/Company/AddEmployeeDesignation",assignDesignationForm).then((d)=>{
       if(d){
         alert("Designation Assigned sucessfully")
         setassignDesignationForm({})
@@ -163,8 +160,7 @@ function designationsList(){
   debugger
   let token=localStorage.getItem('currentUser')
   console.log(companyId)
-  axios.get("https://localhost:44363/api/Company/EmployeesWithDesignationsInCompany/"+companyId,{headers:{Authorization:`Bearer ${token}`},
-}).then((d)=>{
+  Interceptor.get("https://localhost:44363/api/Company/EmployeesWithDesignationsInCompany/"+companyId).then((d)=>{
     if(d.data){
       //console.log(d.data)
       setDesignatioEmployee(d.data)
@@ -179,13 +175,10 @@ function designationsList(){
 
 function deleteEmployeeDesignation(employeeId){
   debugger
-  let token=localStorage.getItem('currentUser')
   let ans=window.confirm('Want to delete data???')
       if(!ans) return;  
       console.log(employeeId)
-      axios.delete("https://localhost:44363/api/Company/DeleteEmployeesWithDesignationsInCompany?employeeId="+employeeId,{
-      headers:{Authorization:`Bearer ${token}`},
-    }).then((d)=>{
+      Interceptor.delete("https://localhost:44363/api/Company/DeleteEmployeesWithDesignationsInCompany?employeeId="+employeeId).then((d)=>{
       
         if(d){
           alert(employeeId)
@@ -207,9 +200,8 @@ setEmployeeForm(data)
 
 function updateClick(){
   debugger
-  let token=localStorage.getItem("currentUser");
 console.log(employeeForm)
-  axios.put("https://localhost:44363/api/Employee",employeeForm,{headers:{Authorization:`Bearer ${token}`}}).then((d)=>{
+Interceptor.put("https://localhost:44363/api/Employee",employeeForm).then((d)=>{
     if(d.data){
       alert("Employee Details updated sucessfully")
       getAll(companyId);
@@ -222,14 +214,11 @@ console.log(employeeForm)
 
 function deleteClick(employeeId){
   debugger
-      var token=localStorage.getItem("currentUser")
       //alert(id)
       let ans=window.confirm('Want to delete data???')
       if(!ans) return;
       
-      axios.delete("https://localhost:44363/api/Employee?employeeId="+employeeId,{data:{ employeeId:Number(employeeId) },
-      headers:{Authorization:`Bearer ${token}`},
-    }).then((d)=>{
+      Interceptor.delete("https://localhost:44363/api/Employee?employeeId="+employeeId).then((d)=>{
       
         if(d){
 
@@ -250,8 +239,7 @@ function leaveClick(){
   leaveForm.leaveStatus=2
   console.log(leaveForm)
 
-  let token=localStorage.getItem("currentUser")
-  axios.post("https://localhost:44363/api/Leave/AddLeave",leaveForm,{headers:{Authorization: `Bearer ${token}`}}).then((d)=>{
+  Interceptor.post("https://localhost:44363/api/Leave/AddLeave",leaveForm).then((d)=>{
     if(d.status==1){
       setleaveForm(d.data.leaveIdInDb)
      alert(d.message)
@@ -267,8 +255,7 @@ function leaveClick(){
 
 function leavesList(){
   debugger
-  let token=localStorage.getItem("currentUser")
-  axios.get("https://localhost:44363/api/Leave/AllLeaves",{headers:{Authorization:`Bearer ${token}`}}).then((response)=>{
+  Interceptor.get("https://localhost:44363/api/Leave/AllLeaves").then((response)=>{
     if(response.data){
       setleaveList(response.data)
       console.log(leaveForm)
@@ -290,9 +277,8 @@ function leavesList(){
 
 function ApproveLeave(leaveId, value) {
   debugger
-  let token = localStorage.getItem("currentUser");
   
-  axios.put(`https://localhost:44363/api/Leave/UpdateLeaveStatus?leaveId=${leaveId}&leaveStatus=${value}`,{headers:{Authorization:`Bearer ${token}`}}).then((response)=>{
+  Interceptor.put(`https://localhost:44363/api/Leave/UpdateLeaveStatus?leaveId=${leaveId}&leaveStatus=${value}`).then((response)=>{
       if (response) {
         alert("Leave status changed successfully");
         specificCompanyLeave(companyId)
@@ -309,9 +295,7 @@ function ApproveLeave(leaveId, value) {
 
 function specificCompanyLeave(companyId){
   debugger
-  let token=localStorage.getItem('currentUser')
-  axios.get("https://localhost:44363/api/Leave/GetLeavesByCompanyId?companyId="+companyId,{headers:{Authorization:`Bearer ${token}`},
-}).then((d)=>{
+  Interceptor.get("https://localhost:44363/api/Leave/GetLeavesByCompanyId?companyId="+companyId).then((d)=>{
     if(d){
       //console.log(d.data)
       setspecificCompanyLeaveee(d.data)
