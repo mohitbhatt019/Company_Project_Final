@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
-import { useNavigate } from 'react-router-dom';
+import { json, useNavigate  } from 'react-router-dom';
 import Interceptor from './Interceptor';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { Fade } from 'react-bootstrap';
 
 
 
@@ -16,12 +19,17 @@ const initData={
 const navigate=new useNavigate();
 const[company,setCompany]=useState(null);
 const[companyForm,setcompanyForm]=useState({});
-
 useEffect(()=>{
   debugger
   let name=localStorage.getItem("usernameByLS")
+  let token = localStorage.getItem("usernameByLS")
+    if (token==null)   navigate("/login")
+    else
+    
   specificComp(name)
     //console.log(company);
+
+    
 },[])
 
 const changeHandler=(event)=>{
@@ -55,9 +63,11 @@ function saveClick(){
         })
  }
 
- function specificComp(name){
+ function specificComp(){
   debugger
   //let token=localStorage.getItem("currentUser");
+  let name=localStorage.getItem("usernameByLS")
+
   Interceptor.get('https://localhost:44363/api/Company/GetCompanyForSpecificUsers?username='+name/*,{headers:{Authorization:`Bearer ${token}`},}*/).then((d)=>{
   if(d.data){
     //console.log(d.data)
@@ -69,7 +79,7 @@ function saveClick(){
     alert("Api not called secessfully")
   }
 }).catch((e)=>{
-  alert(JSON.stringify(e));
+  alert(e);
 })
  }
 
@@ -107,7 +117,9 @@ function renderCompany(){
         <td>{item.companyGST}</td>
         {userRole == "Admin" || userRole == "Company" ? (
             <td>
-                <button onClick={()=>editClick(item)} className='bg-info m-2' data-toggle="modal" data-target="#editModal">Edit Company</button>
+                <button onClick={()=>editClick(item)} className='bg-info m-2' data-toggle="modal" data-target="#editModal">
+                <FontAwesomeIcon icon={faPlus} className="mr-2" />
+                Edit Company</button>
                 <button onClick={()=>deleteClick(item.companyId)} className='bg-danger m-2'>Delete Company </button>
                 <button onClick={() => employeeList(item.companyId)} className="bg-info m-2" >Employees List</button>
             </td>
@@ -130,6 +142,7 @@ function employeeList(companyId){
 
 function editClick(data){
 setcompanyForm(data);
+
 }
 
 function updateClick(){
@@ -140,8 +153,9 @@ function updateClick(){
     if(d.data){ 
       console.log(d.data)
       //setCompany(d.data);
-      alert("Company Updated Sucessfully")
-     getAll(); 
+      specificComp()
+      alert("Company Updated Sucessfully")                 
+      
 
    }
    else{
@@ -181,7 +195,7 @@ function deleteClick(companyId){
 //DataTable
 const columns = [
   {
-    name: <h5 className='text-success'>Company ID</h5>,
+    name: <h5 className='text-success bg-secondry'>Company ID</h5>,
     selector: "companyId",
     sortable: true,
     style: {
@@ -268,15 +282,15 @@ const data = company ? company.map((item) => ({ ...item })) : [];
                 <h2 className='text-info'></h2>
             </div>
             {userRole == "Admin"  ?(
-            <div className='col-3'>
-                <button className='btn btn-info' data-toggle="modal" data-target="#newModal">New Company</button>
+            <div className='col-3 p-3'>
+                <button className='btn btn-info' data-toggle="modal" data-target="#newModal"><FontAwesomeIcon icon={faPlus} className="mr-2" />New Company</button>
             </div>
             ):null
             }
            
         </div>
 
-        <  DataTable className='table table-responsive table-active'
+        <  DataTable className='table table-borderd table-striped table-active table-hover'
             columns={columns}
             data={data}
             pagination={true}

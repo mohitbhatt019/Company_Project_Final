@@ -10,11 +10,11 @@ import Employee from './screens/Employee';
 import Company from './screens/Company';
 import EmployeeList from './screens/EmployeeList';
 import EmployeeDetail from './screens/EmployeeDetail';
+import { useNavigate } from 'react-router-dom';
 
 function App() {
   return (
     <div className="App">
-      
       <BrowserRouter>
        <Header/> 
       <Routes>
@@ -26,7 +26,6 @@ function App() {
         <Route path='company' element={<Company/>}/> 
         <Route path='/employeeList' element={<EmployeeList/>}/>   
         <Route path='/employeeDetail' element={<EmployeeDetail/>}/>   
-          
       </Routes>
       </BrowserRouter>
     </div>

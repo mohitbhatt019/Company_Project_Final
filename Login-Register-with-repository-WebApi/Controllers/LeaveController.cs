@@ -143,7 +143,17 @@ namespace Company_Project.Controllers
 
             return Ok(leaves);
         }
-
+        [HttpDelete]
+        [Route("DeleteLeaveRequest")]
+        public IActionResult DeleteLeaveRequest(int leaveId) 
+        {
+            if(leaveId is 0)
+            {
+                return NotFound(new { message = "LeaveId Not Found" });
+            }
+            _leaveRepository.Remove(leaveId);
+            return Ok(new {status=1, message="Leave Request Deleted"});
+        }
 
     }
 

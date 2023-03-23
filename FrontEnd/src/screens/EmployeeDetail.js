@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
 import Interceptor from "./Interceptor";
+import DataTable from "react-data-table-component";
+import { Row } from "react-bootstrap";
 
 function EmployeeDetail() {
   const location = useLocation();
@@ -100,12 +102,15 @@ function EmployeeDetail() {
         if (d.data.status == 1) {
           setleaveForm(d.data.leaveIdInDb);
           alert("Leave created sucessfully");
+          window.location.reload();
         } else {
           alert(d.data.message);
+          window.location.reload();
         }
       })
       .catch((e) => {
         alert(e);
+        window.location.reload();
       });
   }
 
@@ -124,72 +129,132 @@ function EmployeeDetail() {
     console.log(specificLeaveList);
   }
 
+  //Datatable
+  const columns = [
+    {
+      name: <h5 className="text-success bg-secondry">Employee Id</h5>,
+      selector: "employeeId",
+      sortable: true,
+      style: {
+        fontSize: "20px",
+        fontWeight: "bold",
+      },
+    },
+    {
+      name: <h5 className="text-success">Employee Name</h5>,
+      selector: "employeeName",
+      sortable: true,
+      style: {
+        fontSize: "20px",
+        fontWeight: "bold",
+      },
+    },
+    {
+      //name: "Company Address",
+      name: <h5 className="text-success"> Employee Address</h5>,
+      selector: "employeeAddress",
+      sortable: true,
+      style: {
+        fontSize: "20px",
+        fontWeight: "bold",
+      },
+    },
+    {
+      name: <h4 className="text-success">Employee Account No.</h4>,
+      selector: "employee_Account_Number",
+      sortable: "true",
+      style: {
+        fontSize: "20px",
+        fontWeight: "bold",
+      },
+    },
+    {
+      name: <h4 className="text-success">Employee PF No.</h4>,
+      selector: "employee_PF_Number",
+      sortable: "true",
+      style: {
+        fontSize: "20px",
+        fontWeight: "bold",
+      },
+    },
+    {
+      name: <h4 className="text-success">Employee Role</h4>,
+      selector: "role",
+      sortable: "true",
+      style: {
+        fontSize: "20px",
+        fontWeight: "bold",
+      },
+    },
+    {
+      name: <h5 className="text-success">Actions</h5>,
+      cell: (row) => (
+        <div className="col-12">
+          <button
+            onClick={() => editClick(row)}
+            className="btn btn-info p-1 btn-sm"
+            data-toggle="modal"
+            data-target="#editModal"
+            style={{
+              fontSize: "16px",
+              padding: "2px 2px",
+              fontWeight: "bold",
+            }}
+          >
+            Edit
+          </button>
+          <button
+            className="btn btn-primary m-1 btn-sm"
+            value={row.employeeId}
+            data-target="#leaveModal"
+            data-toggle="modal"
+            style={{
+              fontSize: "16px",
+              padding: "2px 2px",
+              fontWeight: "bold",
+            }}
+          >
+            Leave
+          </button>
+          <button
+            className="btn btn-secondary m-1 btn-sm"
+            onClick={() => getSpecificEmployeeLeaves(row.employeeId)}
+            value={row.employeeId}
+            data-target="#specificleaveModal"
+            data-toggle="modal"
+            style={{
+              fontSize: "16px",
+              padding: "2px 2px",
+              fontWeight: "bold",
+            }}
+          >
+            Leave status
+          </button>
+        </div>
+      ),
+    },
+  ];
+  const data = employeeList ? employeeList.map((item) => ({ ...item })) : [];
+  console.log(data);
+  let userRole = localStorage.getItem("userIsInRole");
+
   return (
     <div>
       <div className="row">
         <div className="col-4 offset-4">
-          <h2 className="text-info">Employee Details</h2>
+          <h2 className="text-secondry">Employee Details</h2>
         </div>
       </div>
-      <table className="table table-bordered">
-        <thead className="bg-info">
-          <tr className="text-black">
-            <th>Employee ID</th>
-            <th>Employee Name</th>
-            <th>Employee Address</th>
-            <th>Employee Pancard Number</th>
-            <th>Employee Account Number</th>
-            <th>Employee PF Number</th>
-            <th>Role</th>
-            {<th>Actions</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {employeeList?.map((employee, index) => (
-            <tr key={index}>
-              <td>{employee.employeeId}</td>
-              <td>{employee.employeeName}</td>
-              <td>{employee.employeeAddress}</td>
-              <td>{employee.employee_Pancard_Number}</td>
-              <td>{employee.employee_Account_Number}</td>
-              <td>{employee.employee_PF_Number}</td>
-              <td>{employee.role}</td>
-              {
-                <td>
-                  <button
-                    onClick={() => editClick(employee)}
-                    /*onChange={SpecificchangeHandler}*/ className="btn btn-info m-2"
-                    data-toggle="modal"
-                    data-target="#editModal"
-                  >
-                    Edit
-                  </button>
 
-                  <button
-                    className="btn btn-primary m-2"
-                    value={employeeForm.employeeId}
-                    data-target="#leaveModal"
-                    data-toggle="modal"
-                  >
-                    Leave
-                  </button>
-                  <button
-                    className="btn btn-secondary m-2"
-                    onClick={() =>
-                      getSpecificEmployeeLeaves(employee.employeeId)
-                    }
-                    value={employee.employeeId}
-                    data-target="#specificleaveModal"
-                    data-toggle="modal"
-                  >
-                    Leave status
-                  </button>
-                </td>
-              }
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <DataTable
+        className="table table-bordered table-striped table-active table-hover"
+        columns={columns}
+        data={data}
+        pagination={true}
+        paginationPerPage={10}
+        paginationRowsPerPageOptions={[10, 20, 30]}
+        highlightOnHover={true}
+      />
 
       {/*Employee Leave Aply */}
       <form>
@@ -203,7 +268,7 @@ function EmployeeDetail() {
               {/* Body */}
               <div className="modal-body">
                 <div className="form-group row">
-                  <label for="txtname" className="col-sm-4">
+                  <label htmlFor="txtname" className="col-sm-4">
                     Employee Id
                   </label>
                   <div className="col-sm-8">
@@ -220,7 +285,7 @@ function EmployeeDetail() {
                   </div>
                 </div>
                 <div className="form-group row">
-                  <label for="employeeAddress" className="col-sm-4">
+                  <label htmlFor="employeeAddress" className="col-sm-4">
                     Start date
                   </label>
                   <div className="col-sm-8">
